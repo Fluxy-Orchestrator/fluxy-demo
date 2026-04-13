@@ -131,7 +131,7 @@ import org.fluxy.core.context.ExecutionContext;
 import org.fluxy.spring.annotation.Task;
 
 @Task(name = "mi-tarea", description = "Descripción de la tarea", version = 1)
-public class MiTareaTask extends FluxyTask {
+public class MiTareaTask extends AbstractFluxyTask {
 
     public MiTareaTask() {
         this.name = "mi-tarea";
