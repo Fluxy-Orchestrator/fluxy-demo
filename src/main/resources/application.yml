@@ -1,0 +1,109 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# Fluxy Demo — Configuración de la aplicación
+# ══════════════════════════════════════════════════════════════════════════════
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: fluxy-demo
+
+  # ── Datasource primario de la aplicación ──────────────────────────────────
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/fluxy_demo?options=-c%20TimeZone=UTC"
+    username: fluxy
+    password: fluxy
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  # ── Spring Cloud AWS → apunta a LocalStack ────────────────────────────────
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+      credentials:
+        access-key: test
+        secret-key: test
+      endpoint: http://localhost:4566
+      sqs:
+        endpoint: http://localhost:4566
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Fluxy Framework
+# ══════════════════════════════════════════════════════════════════════════════
+
+fluxy:
+
+  # ── Datasource dedicado de Fluxy (misma BD, infraestructura JPA aislada) ──
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/fluxy_demo?options=-c%20TimeZone=UTC"
+    driver-class-name: org.postgresql.Driver
+    username: fluxy
+    password: fluxy
+    hikari:
+      pool-name: FluxyHikariPool
+      maximum-pool-size: 5
+      minimum-idle: 2
+
+  # ── JPA / Hibernate para el EntityManagerFactory dedicado de Fluxy ────────
+  jpa:
+    show-sql: false
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+
+  # ── Registro y validación de Tasks ────────────────────────────────────────
+  task:
+    registration:
+      auto-register: true
+      cleanup-stale:
+        enabled: true
+        mode: WARN
+      validate-steps: true
+
+  # ── Bus de eventos → Amazon SQS vía LocalStack ───────────────────────────
+  eventbus:
+    type: SQS
+    sqs:
+      queue-url: http://localhost:4566/000000000000/fluxy-events
+      region: us-east-1
+      endpoint: http://localhost:4566
+      access-key: LSIAQAAAAAAVNCBMPNSG
+      secret-key: LSIAQAAAAAAVNCBMPNSG
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Actuator
+# ══════════════════════════════════════════════════════════════════════════════
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  health:
+    ratelimiters.enabled: true
+  endpoints:
+    web.exposure.include: 'health, metrics'
+  metrics:
+    tags:
+      service: 'fluxy'
+  datadog:
+    metrics:
+      export:
+        enabled: false
+  statsd:
+    metrics:
+      export:
+        host: ${DD_AGENT_HOST:localhost}
+        port: ${DD_DOGSTATSD_PORT:8125}
+        enabled: true
+

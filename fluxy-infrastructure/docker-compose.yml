@@ -1,0 +1,41 @@
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16
+    container_name: fluxy-postgres
+    environment:
+      POSTGRES_DB: fluxy_demo
+      POSTGRES_USER: fluxy
+      POSTGRES_PASSWORD: fluxy
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "5432:5432"
+    volumes:
+      - fluxy-pg-data:/var/lib/postgresql/data
+    command: ["postgres", "-c", "timezone=UTC"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fluxy -d fluxy_demo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── LocalStack (SQS) ───────────────────────────────────────────────────────
+  localstack:
+    image: localstack/localstack:latest
+    container_name: fluxy-localstack
+    environment:
+      SERVICES: sqs
+      DEFAULT_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./init-localstack.sh:/etc/localstack/init/ready.d/init-localstack.sh
+
+volumes:
+  fluxy-pg-data:
+

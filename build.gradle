@@ -1,0 +1,84 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'org.fluxy'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    datadogJavaAgent
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+ext {
+    // Spring platform alignment
+    set('springCloudVersion', '2025.1.0')
+    set('springCloudAwsVersion', '3.4.1')
+
+    // Observability
+    set('dataDogVersion', '1.52.0')
+    set('dataDogStatsdVersion', '4.4.5')
+}
+
+dependencies {
+    // ── Fluxy Starter ────────────────────────────────────────────────────────
+    implementation 'org.fluxy:spring-boot-starter-fluxy:1.0.0'
+
+    // ── Spring Boot starters (versions managed by Boot BOM) ──────────────────
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // ── Spring Cloud (managed by Spring Cloud BOM) ───────────────────────────
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // ── AWS Spring Cloud — solo el módulo SQS (sin autoconfigure, incompatible con Boot 4) ─
+    implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}")
+    implementation 'io.awspring.cloud:spring-cloud-aws-sqs'
+
+    // ── Observability / Datadog ──────────────────────────────────────────────
+    implementation "com.datadoghq:dd-trace-api:${dataDogVersion}"
+    datadogJavaAgent "com.datadoghq:dd-java-agent:${dataDogVersion}"
+    implementation "com.datadoghq:java-dogstatsd-client:${dataDogStatsdVersion}"
+
+    // ── Tooling ──────────────────────────────────────────────────────────────
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // ── Runtime ──────────────────────────────────────────────────────────────
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'io.micrometer:micrometer-registry-datadog'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+    // ── Testing ──────────────────────────────────────────────────────────────
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
