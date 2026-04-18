@@ -5,8 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class FluxyDemoApplication {
-
-    static void main(String[] args) {
+                               static void main(String[] args) {
         SpringApplication.run(FluxyDemoApplication.class, args);
     }
 }
